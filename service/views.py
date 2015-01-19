@@ -19,19 +19,17 @@ from django.core.servers.basehttp import FileWrapper
 logger = logging.getLogger(__name__)
 app_cfg = settings.app_cfg
 
-#(host,port,repl) = (settings.mongo_host,settings.mongo_port,settings.mongo_replicaset)
-#logger.debug( "mongodb_info::> %s ; %s ; %s" % (host,port,repl) )
-#conn = pymongo.MongoClient(host=host,port=int(port),replicaset=repl)
-#db = conn.fileserver
-#coll = db.fileindex
+(host,port,repl) = (settings.mongo_host,settings.mongo_port,settings.mongo_replicaset)
+logger.debug( "mongodb_info::> %s ; %s ; %s" % (host,port,repl) )
+conn = pymongo.MongoClient(host=host,port=int(port),replicaset=repl)
+db = conn.fileserver
+coll = db.fileindex
 
 def appendIndex(args):
-	#coll.insert(args)
-	pass
+	coll.insert(args)
 	
 def getIndex(args):
-	#return coll.find_one(args,{'_id':0})
-	pass
+	return coll.find_one(args,{'_id':0})
 
 def resizeImg(img,width):
 	'''
