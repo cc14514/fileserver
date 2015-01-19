@@ -29,6 +29,7 @@ def appendIndex(args):
 	coll.insert(args)
 	
 def getIndex(args):
+	logger.debug('getIndex args = %s ' % args)
 	return coll.find_one(args,{'_id':0})
 
 def resizeImg(img,width):
@@ -188,7 +189,7 @@ def getFile(request,id):
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
 		idx = getIndex({'pk':id},{'_id':0})
-		logger.debug("+++++++ %s" % idx)
+		logger.debug("+++++++ idx = %s" % idx)
 		if idx :
 			f = idx.get('path')
 			wrapper = FileWrapper(file(f))
