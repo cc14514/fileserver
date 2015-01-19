@@ -23,12 +23,13 @@ app_cfg = settings.app_cfg
 logger.debug( "mongodb_info::> %s ; %s ; %s" % (host,port,repl) )
 conn = pymongo.MongoClient(host=host,port=int(port),replicaset=repl)
 db = conn.fileserver
-coll = db.fileindex
 
 def appendIndex(args):
+	coll = db.fileindex
 	coll.insert(args)
 	
 def getIndex(args):
+	coll = db.fileindex
 	logger.debug('getIndex args = %s ' % args)
 	return coll.find_one(args,{'_id':0})
 
@@ -184,7 +185,7 @@ def upload(request):
 
 
 def getFile(request,id):
-	logger.debug("method="+request.method+" ; id="+id)
+	logger.debug("[get] method="+request.method+" ; id="+id)
 	try:
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
@@ -201,3 +202,28 @@ def getFile(request,id):
 			return HttpResponse("not_found",content_type="text/html ; charset=utf8")
 	except :
 		return HttpResponse("not_found",content_type="text/html ; charset=utf8")
+def delFile(request,id):
+	logger.debug("[del] method="+request.method+" ; id="+id)
+	try:
+		if request.GET.has_key('size'):
+			size = request.GET.get('size')
+		idx = getIndex({'pk':id})
+		logger.debug("+++++++ idx = %s" % idx)
+		f = idx.get('path')
+		os.remove(f)
+		return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
+	except :
+		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
+
+def infoFile(request,id):
+	logger.debug("[del] method="+request.method+" ; id="+id)
+	try:
+		if request.GET.has_key('size'):
+			size = request.GET.get('size')
+		idx = getIndex({'pk':id})
+		logger.debug("+++++++ idx = %s" % idx)
+		success = {'success':True,'entity':idx}
+		rtn = json.dumps(success)
+		return HttpResponse(rtn,content_type="text/json ; charset=utf8")
+	except :
+		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
