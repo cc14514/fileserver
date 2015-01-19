@@ -9,10 +9,13 @@
 <p>输入:</p>
 <p>模拟以下表单，即可完成附件上传，具体参数解释如下</p>
 
+
 <form action="http://localhost:8000/fileserver/upload/" method="POST" enctype="multipart/form-data" >
-        <!-- 上传附件的应用名，需要在后台注册 -->
+        <!-- 应用名,由后台注册提供 -->
         <p>appid:<input type="text" name="appid" value="test"/></p>
+        <!-- 应用名对应的开发者许可,由后台注册提供-->
         <p>appkey:<input type="text" name="appkey" value="test"/></p>
+        <!-- 如果需要更新附件，则需指明id，新增时此参数为空即可 -->
         <p>id:<input type="text" name="id" value="" /></p>
         <!-- 附件类型，file / image 文件或 image，默认 image -->
         <p>file_type:<input type="text" name="file_type" value="image" /></p>
