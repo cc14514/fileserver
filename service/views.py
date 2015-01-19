@@ -188,7 +188,7 @@ def getFile(request,id):
 	try:
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
-		idx = getIndex({'pk':id},{'_id':0})
+		idx = getIndex({'pk':id})
 		logger.debug("+++++++ idx = %s" % idx)
 		if idx :
 			f = idx.get('path')
