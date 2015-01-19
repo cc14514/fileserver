@@ -16,5 +16,7 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
 	('^fileserver/upload/$','service.views.upload'),
     ('^fileserver/get/(.+)/$','service.views.getFile'),
+    ('^fileserver/del/(.+)/$','service.views.delFile'),
+    ('^fileserver/info/(.+)/$','service.views.infoFile'),
     
 )
