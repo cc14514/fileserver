@@ -26,6 +26,11 @@ db = conn.fileserver
 
 def appendIndex(args):
 	coll = db.fileindex
+	if args.get('pk') and coll.find_one({'pk':args.get('pk')}) :
+		logger.debug('[update] args = %s' % args)
+		coll.remove({'pk':args.get('pk')})
+	else:
+		logger.debug('[insert] args = %s' % args)
 	coll.insert(args)
 	
 def getIndex(args):
