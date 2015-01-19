@@ -1,8 +1,8 @@
-上传地址 http://202.85.221.165/fileserver/upload/
-下载地址 http://202.85.221.165/fileserver/get/文件id
+上传地址 http://fileserver.lczybj.com/fileserver/upload/
+下载地址 http://fileserver.lczybj.com/fileserver/get/文件id
 
 在程序中模拟以下表单，即可完成附件上传，参数名与含义参见表单内注释
-<form action="http://202.85.221.165/fileserver/upload/" method="POST" enctype="multipart/form-data" >
+<form action="http://fileserver.lczybj.com/fileserver/upload/" method="POST" enctype="multipart/form-data" >
         <!-- 应用名,由后台注册提供 -->
         <p>appid:<input type="text" name="appid" value="test"/></p>
         <!-- 应用名对应的开发者许可,由后台注册提供-->
