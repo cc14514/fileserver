@@ -33,6 +33,11 @@ def getIndex(args):
 	logger.debug('getIndex args = %s ' % args)
 	return coll.find_one(args,{'_id':0})
 
+def delIndex(args):
+	coll = db.fileindex
+	coll.remove(args)
+	
+
 def resizeImg(img,width):
 	'''
 	按比例缩放图片，必须指定新的宽度
@@ -221,6 +226,7 @@ def infoFile(request,id):
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
 		idx = getIndex({'pk':id})
+		delIndex({'pk':id})
 		logger.debug("+++++++ idx = %s" % idx)
 		success = {'success':True,'entity':idx}
 		rtn = json.dumps(success)
