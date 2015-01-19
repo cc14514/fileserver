@@ -8,7 +8,7 @@
 <b>上传</b>
 <p>输入:</p>
 <p>模拟以下表单，即可完成附件上传，具体参数解释如下</p>
-<pre><code>
+<pre><code>"
 <form action="http://localhost:8000/fileserver/upload/" method="POST" enctype="multipart/form-data" >
         <!-- 应用名,由后台注册提供 -->
         <p>appid:<input type="text" name="appid" value="test"/></p>
@@ -24,6 +24,8 @@
         <p>file:<input type="file" name="file" /></p>
         <button type="submit">submit</button>
 </form>
-</code></pre>
+"</code></pre>
 
 <b>下载</b>
+
+
