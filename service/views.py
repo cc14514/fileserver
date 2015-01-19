@@ -226,7 +226,6 @@ def infoFile(request,id):
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
 		idx = getIndex({'pk':id})
-		delIndex({'pk':id})
 		logger.debug("+++++++ idx = %s" % idx)
 		success = {'success':True,'entity':idx}
 		rtn = json.dumps(success)
