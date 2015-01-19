@@ -1,0 +1,27 @@
+上传地址 http://202.85.221.165/fileserver/upload/
+下载地址 http://202.85.221.165/fileserver/get/文件id
+
+在程序中模拟以下表单，即可完成附件上传，参数名与含义参见表单内注释
+<form action="http://202.85.221.165/fileserver/upload/" method="POST" enctype="multipart/form-data" >
+        <!-- 应用名,由后台注册提供 -->
+        <p>appid:<input type="text" name="appid" value="test"/></p>
+        <!-- 应用名对应的开发者许可,由后台注册提供-->
+        <p>appkey:<input type="text" name="appkey" value="test"/></p>
+        <!-- 如果需要更新附件，则需指明id，新增时此参数为空即可 -->
+        <p>id:<input type="text" name="id" value="" /></p>
+        <!-- 附件类型，file / image 文件或 image，默认 image -->
+        <p>file_type:<input type="text" name="file_type" value="image" /></p>
+        <!-- # 是否加水印, 如果 file_type=image 则默认 true,可选值 true / false -->
+        <p>watermark:<input type="text" name="watermark" value="true" /></p>
+        <!-- 附件 -->
+        <p>file:<input type="file" name="file" /></p>
+        <button type="submit">submit</button>
+</form>
+
+上传成功时返回：{"success":true,"entity":{"id":"文件id"}}
+上传失败时返回：{"success":false}
+
+文件id需要业务系统自行保存，读取和删除文件时需要使用此id
+
+下载成功时直接返回文件流到请求端(content_type='text/plain;charset=utf8'),其中文件大小在 Content-Length 属性中返回；
+下载失败时返回：not_found 字符串
