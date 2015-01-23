@@ -222,6 +222,7 @@ def delFile(request,id):
 		logger.debug("+++++++ idx = %s" % idx)
 		f = idx.get('path')
 		os.remove(f)
+		delIndex({'pk':id})
 		return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
 	except :
 		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
