@@ -13,6 +13,7 @@ import traceback
 import os
 import StringIO
 import fileserver.settings as settings
+import commands
 from PIL import Image
 from django.core.servers.basehttp import FileWrapper
 
