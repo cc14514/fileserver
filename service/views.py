@@ -240,23 +240,24 @@ def infoFile(request,id):
 
 
 def doc2html(request,id):
-        '''
-        将id对应的文档转换成html，并返回给请求方
-        '''
-        logger.debug("[doc2html] method="+request.method+" ; id="+id)
-        try:
-                idx = getIndex({'pk':id})
-                i = idx.get('path')
-                o = '/tmp/%s.html' % id
-                cmd = '/usr/bin/unoconv -o /tmp -f html %s' % (i)
-                logger.debug('[doc2html] cmd=%s' % cmd)
-                (status,output) = commands.getstatusoutput(cmd)
-                logger.debug('[doc2html] status=%s ; output=%s' % (status,output))
-                rf = open(o,'r')
-                html = rf.read()
-                rf.close()
-                success = {'success':True,'entity':{'html':html}}
-                rtn = json.dumps(success)
-                return HttpResponse(rtn,content_type="text/json ; charset=utf8")
-        except :
-                return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
+	'''
+	将id对应的文档转换成html，并返回给请求方
+	'''
+	logger.debug("[doc2html] method="+request.method+" ; id="+id)
+	try:
+		idx = getIndex({'pk':id})
+		i = idx.get('path')
+		o = '/tmp/%s.html' % id
+		cmd = '/usr/bin/unoconv -o /tmp -f html %s' % (i)
+		logger.debug('[doc2html] cmd=%s' % cmd)
+		(status,output) = commands.getstatusoutput(cmd)
+		logger.debug('[doc2html] status=%s ; output=%s' % (status,output))
+		rf = open(o,'r')
+		html = rf.read()
+		rf.close()
+		success = {'success':True,'entity':{'html':html}}
+		rtn = json.dumps(success)
+		return HttpResponse(rtn,content_type="text/json ; charset=utf8")
+	except Exception,e :
+		logger.error(e)
+		return HttpResponse('{"success":false,"entity":{"reason":"%s"}}' % (e),content_type="text/json ; charset=utf8")
