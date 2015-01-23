@@ -18,5 +18,6 @@ urlpatterns = patterns('',
     ('^fileserver/get/(.+)/$','service.views.getFile'),
     ('^fileserver/del/(.+)/$','service.views.delFile'),
     ('^fileserver/info/(.+)/$','service.views.infoFile'),
+    ('^fileserver/doc2html/(.+)/$','service.views.doc2html'),
     
 )
