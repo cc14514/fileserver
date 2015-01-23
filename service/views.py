@@ -248,7 +248,7 @@ def doc2html(request,id):
                 idx = getIndex({'pk':id})
                 i = idx.get('path')
                 o = '/tmp/%s.html' % id
-                cmd = '/usr/bin/unoconv -o %s -f html %s' % (o,i)
+                cmd = '/usr/bin/unoconv -o /tmp -f html %s' % (i)
                 logger.debug('[doc2html] cmd=%s' % cmd)
                 (status,output) = commands.getstatusoutput(cmd)
                 logger.debug('[doc2html] status=%s ; output=%s' % (status,output))
