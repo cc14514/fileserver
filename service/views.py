@@ -171,7 +171,7 @@ def token(request):
 		成功 {"success":true,"entity":{"token":"..."}}
 		失败 {"success":false,"entity":{"reason":"..."}}
 	'''
-	try
+	try:
 		if 'POST' == request.method:
 			appid = request.POST.get('appid')
 			appkey = request.POST.get('appkey')
