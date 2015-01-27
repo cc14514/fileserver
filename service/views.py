@@ -143,8 +143,8 @@ def check_token(token):
 	'''
 	校验token是否有效，token都是1次性的，所以通过时要删除token，防止重复使用
 	'''
-	if redis_cli.get(token):
-		redis_cli.delete(token)
+	if redis_cli.get('fileserver.'+token):
+		redis_cli.delete('fileserver.'+token)
 		return True			
 	else:
 		return False
@@ -178,7 +178,7 @@ def token(request):
 			if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get(appkey) :
 				# 校验通过
 				token = uuid.uuid4().hex
-				redis_cli.psetex(token,1000*60*5,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
+				redis_cli.psetex("fileserver."+token,1000*60*5,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
 				return HttpResponse('{"success":true,"entity":{"token":"%s"}}' % token, content_type='text/json;charset=utf8')
 			else:
 				# 校验失败
