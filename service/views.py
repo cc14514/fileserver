@@ -304,10 +304,12 @@ def getFile(request,id):
 	except :
 		return HttpResponse("not_found",content_type="text/html ; charset=utf8")
 
-def delFile(request,id):
-	logger.debug("[del] method="+request.method+" ; id="+id)
+def delFile(request):
+	logger.debug("[del] method="+request.method)
 	try:
 		if 'POST' == request.method :
+			id = request.POST.get('id')
+			logger.debug("[del] method="+request.method+" ; id="+id)
 			idx = getIndex({'pk':id})
 			logger.debug("=====> idx = %s" % idx)
 			if idx.get('auth') and 'true' == idx.get('auth'):	
