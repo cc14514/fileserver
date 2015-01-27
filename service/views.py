@@ -145,8 +145,10 @@ def check_token(token):
 	'''
 	if redis_cli.get('fileserver.'+token):
 		redis_cli.delete('fileserver.'+token)
+		logger.debug('check_token_return = True')
 		return True			
 	else:
+		logger.debug('check_token_return = False')
 		return False
 
 def get_token(request):
@@ -157,6 +159,8 @@ def get_token(request):
 	elif 'POST' == request.method :
 		if request.POST.has_key('token'):
 			token = request.POST.get('token')
+	logger.debug('get_token_return = %s' % token)
+	return token
 
 ############################################
 ## http handler
@@ -273,7 +277,7 @@ def getFile(request,id):
 		idx = getIndex({'pk':id})
 		logger.debug("=======> idx = %s" % idx)
 		if idx :
-			if idx.get('auth'):	
+			if idx.get('auth') and 'true' == idx.get('auth'):	
 				token = get_token(request)
 				if token:
 					if check_token(token):
@@ -297,7 +301,7 @@ def delFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
 	try:
 		idx = getIndex({'pk':id})
-		if idx.get('auth'):	
+		if idx.get('auth') and 'true' == idx.get('auth'):	
 			token = get_token(request)
 			if token:
 				if check_token(token):
@@ -306,8 +310,7 @@ def delFile(request,id):
 					return HttpResponse('{"success":false,"entity":{"reason":"error_token"}}',content_type="text/json ; charset=utf8")
 			else:
 				return HttpResponse('{"success":false,"entity":{"reason":"not_found_token"}}',content_type="text/json ; charset=utf8")
-
-		logger.debug("+++++++ idx = %s" % idx)
+		logger.debug("=====> idx = %s" % idx)
 		f = idx.get('path')
 		os.remove(f)
 		delIndex({'pk':id})
