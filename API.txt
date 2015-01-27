@@ -1,8 +1,15 @@
 上传地址 http://fileserver.lczybj.com/fileserver/upload/
+
 下载地址 http://fileserver.lczybj.com/fileserver/get/文件id?token=xxx  如果是需要鉴权的资源则必须填写token参数
-删除地址 http://fileserver.lczybj.com/fileserver/del/文件id?token=xxx  如果是需要鉴权的资源则必须填写token参数
+
 索引信息 http://fileserver.lczybj.com/fileserver/info/文件id
+
 获取token http://fileserver.lczybj.com/fileserver/token/ 只接收post请求，参数 appid、appkey
+
+删除地址 http://fileserver.lczybj.com/fileserver/del/ 只接收post请求，参数 id、appid、appkey ，如果是需要鉴权的资源则必须填写token参数并忽略appid、appkey
+	不需要鉴权时，post 传递参数 id、appid、appkey 完成删除
+	需要鉴权时，post 传递参数 id、token 完成删除
+
 
 在程序中模拟以下表单，即可完成附件上传，参数名与含义参见表单内注释
 <form action="http://fileserver.lczybj.com/fileserver/upload/" method="POST" enctype="multipart/form-data" >
@@ -29,5 +36,5 @@
 文件id需要业务系统自行保存，读取和删除文件时需要使用此id
 
 下载成功时直接返回文件流到请求端(content_type='text/plain;charset=utf8'),其中文件大小在 Content-Length 属性中返回；
-下载失败时返回：not_found 字符串
+下载失败时返回：not_found 等字符串
 
