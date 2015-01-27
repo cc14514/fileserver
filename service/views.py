@@ -300,21 +300,24 @@ def getFile(request,id):
 def delFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
 	try:
-		idx = getIndex({'pk':id})
-		if idx.get('auth') and 'true' == idx.get('auth'):	
-			token = get_token(request)
-			if token:
-				if check_token(token):
-					pass
+		if 'POST' == request.method :
+			idx = getIndex({'pk':id})
+			if idx.get('auth') and 'true' == idx.get('auth'):	
+				token = get_token(request)
+				if token:
+					if check_token(token):
+						pass
+					else:
+						return HttpResponse('{"success":false,"entity":{"reason":"error_token"}}',content_type="text/json ; charset=utf8")
 				else:
-					return HttpResponse('{"success":false,"entity":{"reason":"error_token"}}',content_type="text/json ; charset=utf8")
-			else:
-				return HttpResponse('{"success":false,"entity":{"reason":"not_found_token"}}',content_type="text/json ; charset=utf8")
-		logger.debug("=====> idx = %s" % idx)
-		f = idx.get('path')
-		os.remove(f)
-		delIndex({'pk':id})
-		return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
+					return HttpResponse('{"success":false,"entity":{"reason":"not_found_token"}}',content_type="text/json ; charset=utf8")
+			logger.debug("=====> idx = %s" % idx)
+			f = idx.get('path')
+			os.remove(f)
+			delIndex({'pk':id})
+			return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
+		else:
+			return HttpResponse('{"success":false,"entity":{"reason":"only_accept_post"}}',content_type="text/json ; charset=utf8")
 	except :
 		return HttpResponse('{"success":false,"entity":{"reason":"not_found"}}',content_type="text/json ; charset=utf8")
 
