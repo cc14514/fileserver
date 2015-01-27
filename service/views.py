@@ -183,7 +183,7 @@ def token(request):
 			if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get('appkey') :
 				# 校验通过
 				token = uuid.uuid4().hex
-				redis_cli.psetex("fileserver."+token,1000*60*5,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
+				redis_cli.psetex("fileserver."+token,1000*60*60,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
 				return HttpResponse('{"success":true,"entity":{"token":"%s"}}' % token, content_type='text/json;charset=utf8')
 			else:
 				# 校验失败
