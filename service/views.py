@@ -176,7 +176,7 @@ def token(request):
 			appid = request.POST.get('appid')
 			appkey = request.POST.get('appkey')
 			logger.debug("appid=%s ; appkey=%s ; app_cfg=%s" % (appid,appkey,app_cfg) )
-			if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get(appkey) :
+			if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get('appkey') :
 				# 校验通过
 				token = uuid.uuid4().hex
 				redis_cli.psetex("fileserver."+token,1000*60*5,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
