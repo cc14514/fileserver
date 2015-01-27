@@ -290,9 +290,12 @@ def getFile(request,id):
 			f = idx.get('path')
 			filename = idx.get('file_name')
 			wrapper = FileWrapper(file(f))
-			# response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
-			response = HttpResponse(wrapper,mimetype='application/octet-stream') 
-			response['Content-Disposition'] = 'attachment; filename=%s' % filename
+			if 'image' == idx.get('file_type'):
+				response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
+			else:	
+				filename = idx.get('file_name')
+				response = HttpResponse(wrapper,mimetype='application/octet-stream') 
+				response['Content-Disposition'] = 'attachment; filename=%s' % filename
 			response['Content-Length'] = os.path.getsize(f)
 			response['Content-Encoding'] = 'utf-8'
 			return response
@@ -300,29 +303,53 @@ def getFile(request,id):
 			return HttpResponse("not_found",content_type="text/html ; charset=utf8")
 	except :
 		return HttpResponse("not_found",content_type="text/html ; charset=utf8")
+
 def delFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
 	try:
 		if 'POST' == request.method :
 			idx = getIndex({'pk':id})
+			logger.debug("=====> idx = %s" % idx)
 			if idx.get('auth') and 'true' == idx.get('auth'):	
 				token = get_token(request)
 				if token:
 					if check_token(token):
 						pass
 					else:
-						return HttpResponse('{"success":false,"entity":{"reason":"error_token"}}',content_type="text/json ; charset=utf8")
+						success = '{"success":false,"entity":{"reason":"error_token"}}'
+						logger.debug(id+"__"+success)
+						return HttpResponse(success,content_type="text/json ; charset=utf8")
 				else:
-					return HttpResponse('{"success":false,"entity":{"reason":"not_found_token"}}',content_type="text/json ; charset=utf8")
-			logger.debug("=====> idx = %s" % idx)
+					success = '{"success":false,"entity":{"reason":"not_found_token"}}'
+					logger.debug(id+"__"+success)
+					return HttpResponse(success,content_type="text/json ; charset=utf8")
+			else:
+				if request.POST.has_key('appid') and request.POST.has_key('appkey'):
+					appid,appkey = request.POST.get('appid'),request.POST.get('appkey')
+					if app_cfg.get(appid) and appkey == app_cfg.get(appid).get('appkey'):
+						pass
+					else:
+						success = '{"success":false,"entity":{"reason":"error_appkey"}}'
+						logger.debug(id+"__"+success)
+						return HttpResponse(success,content_type="text/json ; charset=utf8")
+				else:
+					success = '{"success":false,"entity":{"reason":"error_params"}}'
+					logger.debug(id+"__"+success)
+					return HttpResponse(success,content_type="text/json ; charset=utf8")
 			f = idx.get('path')
 			os.remove(f)
 			delIndex({'pk':id})
-			return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
+			success = '{"success":true}'
+			logger.debug(id+"__"+success)
+			return HttpResponse(success,content_type="text/json ; charset=utf8")
 		else:
-			return HttpResponse('{"success":false,"entity":{"reason":"only_accept_post"}}',content_type="text/json ; charset=utf8")
+			success = '{"success":false,"entity":{"reason":"only_accept_post"}}'
+			logger.debug(id+"__"+success)
+			return HttpResponse(success,content_type="text/json ; charset=utf8")
 	except :
-		return HttpResponse('{"success":false,"entity":{"reason":"not_found"}}',content_type="text/json ; charset=utf8")
+		success = '{"success":false,"entity":{"reason":"not_found"}}'
+		logger.debug(id+"__"+success)
+		return HttpResponse(success,content_type="text/json ; charset=utf8")
 
 def infoFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
