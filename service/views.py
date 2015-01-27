@@ -305,7 +305,7 @@ def getFile(request,id):
 		return HttpResponse("not_found",content_type="text/html ; charset=utf8")
 
 def delFile(request):
-	logger.debug("[del] method="+request.method)
+	logger.debug("<del> method="+request.method)
 	try:
 		if 'POST' == request.method :
 			id = request.POST.get('id')
