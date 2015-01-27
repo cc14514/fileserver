@@ -222,7 +222,7 @@ def upload(request):
 		# appid 和 appkey 要匹配，否则不能执行写操作
 		appkey = request.POST.get('appkey')
 		# 校验 appkey 
-		if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get(appkey) :
+		if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get('appkey') :
 			# 校验通过
 			pass	
 		else:
