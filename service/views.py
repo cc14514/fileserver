@@ -288,8 +288,11 @@ def getFile(request,id):
 					return HttpResponse("not_found_token",content_type="text/html ; charset=utf8")
 
 			f = idx.get('path')
+			filename = idx.get('file_name')
 			wrapper = FileWrapper(file(f))
-			response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
+			# response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
+			response = HttpResponse(wrapper,mimetype='application/octet-stream') 
+			response['Content-Disposition'] = 'attachment; filename=%s' % filename
 			response['Content-Length'] = os.path.getsize(f)
 			response['Content-Encoding'] = 'utf-8'
 			return response
