@@ -14,16 +14,24 @@ import os
 import StringIO
 import fileserver.settings as settings
 import commands
+import redis
 from PIL import Image
 from django.core.servers.basehttp import FileWrapper
 
 logger = logging.getLogger(__name__)
 app_cfg = settings.app_cfg
 
+(rhost,rport) = (settings.redis_host,settings.redis_port)
+redis_cli = redis.Redis(host=rhost,port=rport)
+
 (host,port,repl) = (settings.mongo_host,settings.mongo_port,settings.mongo_replicaset)
 logger.debug( "mongodb_info::> %s ; %s ; %s" % (host,port,repl) )
 conn = pymongo.MongoClient(host=host,port=int(port),replicaset=repl)
 db = conn.fileserver
+
+########################################
+## private method 
+########################################
 
 def appendIndex(args):
 	coll = db.fileindex
@@ -64,6 +72,7 @@ def handlerUpload(**args):
 	file_type = args.get('file_type')
 	file_name = args.get('file_name')
 	watermark = args.get('watermark')
+	auth = args.get('auth')
 	if 'image' == file_type :
 		img = Image.open(string_io)
 		logger.info("_______"+img.format)
@@ -107,7 +116,7 @@ def handlerUpload(**args):
 		string_io.close()
 	now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
 	# 创建索引到 mongodb
-	appendIndex({'pk':id,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now})
+	appendIndex({'pk':id,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now,'auth':auth})
 	string_io.close()
 
 def genStorePath():
@@ -130,7 +139,54 @@ def readFile(f):
 	sio.seek(0)
 	return sio
 
+def check_token(token):
+	'''
+	校验token是否有效，token都是1次性的，所以通过时要删除token，防止重复使用
+	'''
+	if redis_cli.get(token):
+		redis_cli.delete(token)
+		return True			
+	else:
+		return False
 
+def get_token(request):
+	token = None
+	if 'GET' == request.method :
+		if request.GET.has_key('token'):
+			token = request.GET.get('token')
+	elif 'POST' == request.method :
+		if request.POST.has_key('token'):
+			token = request.POST.get('token')
+
+############################################
+## http handler
+############################################
+
+def token(request):
+	'''
+	对附件进行删除操作时，需要从此获取token先，然后才能删除
+	只接收post请求，
+	输入参数： appid, appkey
+	输出：
+		成功 {"success":true,"entity":{"token":"..."}}
+		失败 {"success":false,"entity":{"reason":"..."}}
+	'''
+	try
+		if 'POST' == request.method:
+			appid = request.POST.get('appid')
+			appkey = request.POST.get('appkey')
+			if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get(appkey) :
+				# 校验通过
+				token = uuid.uuid4().hex
+				redis_cli.psetex(token,1000*60*5,'{"appid":"%s","appkey":"%s"}' % (appid,appkey))	
+				return HttpResponse('{"success":true,"entity":{"token":"%s"}}' % token, content_type='text/json;charset=utf8')
+			else:
+				# 校验失败
+				return HttpResponse('{"success":false,"entity":{"reason":"appkey_error"}}', content_type='text/json;charset=utf8')
+		else:
+			return HttpResponse('{"success":false,"entity":{"reason":"only_accept_post"}}', content_type='text/json;charset=utf8')
+	except:
+		return HttpResponse('{"success":false,"entity":{"reason":"error_params"}}', content_type='text/json;charset=utf8')
 
 
 def upload(request):
@@ -160,6 +216,14 @@ def upload(request):
 		appid = request.POST.get('appid')
 		# appid 和 appkey 要匹配，否则不能执行写操作
 		appkey = request.POST.get('appkey')
+		# 校验 appkey 
+		if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get(appkey) :
+			# 校验通过
+			pass	
+		else:
+			# 校验失败
+			return HttpResponse('{"success":false,"entity":{"reason":"appkey_error"}}', content_type='text/json;charset=utf8')
+
 		# 附件id，如果为空则服务端产生id并返回给客户端，如果非空并且服务器上有这个id对应的附件，则会覆盖此附件；
 		id = uuid.uuid4().hex
 		if request.POST.has_key('id') and request.POST.get('id') :
@@ -172,6 +236,9 @@ def upload(request):
 		watermark = True
 		if request.POST.has_key('watermark') and 'false' == request.POST.get('watermark'):
 			watermark = False
+		auth = False
+		if request.POST.has_key('auth') and 'true' == request.POST.get('auth'):
+			auth = True 
 		# 文件流
 		sio = readFile(my_file)
 		# 存储地址
@@ -184,11 +251,13 @@ def upload(request):
 			file_name = my_file.name,
 			watermark = watermark,
 			string_io = sio,
-			output_path = spath
+			output_path = spath,
+			auth = auth
 		)
 		success['entity'] = {'id':id}
 	else:
 		success['success'] = False
+		success['entity'] = {"reason":"only_accept_post"}
 
 	rtn = json.dumps(success)
 	logger.debug(rtn)
@@ -201,8 +270,18 @@ def getFile(request,id):
 		if request.GET.has_key('size'):
 			size = request.GET.get('size')
 		idx = getIndex({'pk':id})
-		logger.debug("+++++++ idx = %s" % idx)
+		logger.debug("=======> idx = %s" % idx)
 		if idx :
+			if idx.get('auth'):	
+				token = get_token(request)
+				if token:
+					if check_token(token):
+						pass
+					else:
+						return HttpResponse("error_token",content_type="text/html ; charset=utf8")
+				else:
+					return HttpResponse("not_found_token",content_type="text/html ; charset=utf8")
+
 			f = idx.get('path')
 			wrapper = FileWrapper(file(f))
 			response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
@@ -216,16 +295,24 @@ def getFile(request,id):
 def delFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
 	try:
-		if request.GET.has_key('size'):
-			size = request.GET.get('size')
 		idx = getIndex({'pk':id})
+		if idx.get('auth'):	
+			token = get_token(request)
+			if token:
+				if check_token(token):
+					pass
+				else:
+					return HttpResponse('{"success":false,"entity":{"reason":"error_token"}}',content_type="text/json ; charset=utf8")
+			else:
+				return HttpResponse('{"success":false,"entity":{"reason":"not_found_token"}}',content_type="text/json ; charset=utf8")
+
 		logger.debug("+++++++ idx = %s" % idx)
 		f = idx.get('path')
 		os.remove(f)
 		delIndex({'pk':id})
 		return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
 	except :
-		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
+		return HttpResponse('{"success":false,"entity":{"reason":"not_found"}}',content_type="text/json ; charset=utf8")
 
 def infoFile(request,id):
 	logger.debug("[del] method="+request.method+" ; id="+id)
@@ -254,12 +341,15 @@ def doc2html(request,id):
 		logger.debug('[doc2html] cmd=%s' % cmd)
 		(status,output) = commands.getstatusoutput(cmd)
 		logger.debug('[doc2html] status=%s ; output=%s' % (status,output))
-		rf = open(o,'r')
-		html = rf.read()
-		rf.close()
-		success = {'success':True,'entity':{'html':html}}
-		rtn = json.dumps(success)
-		return HttpResponse(rtn,content_type="text/json ; charset=utf8")
+		if status == 0 :
+			rf = open(o,'r')
+			html = rf.read()
+			rf.close()
+			success = {'success':True,'entity':{'html':html}}
+			rtn = json.dumps(success)
+			return HttpResponse(rtn,content_type="text/json ; charset=utf8")
+		else:
+			return HttpResponse('{"success":false,"entity":{"reason":"%s"}}' % (output),content_type="text/json ; charset=utf8")
 	except Exception,e :
 		logger.error(e)
 		return HttpResponse('{"success":false,"entity":{"reason":"%s"}}' % (e),content_type="text/json ; charset=utf8")
