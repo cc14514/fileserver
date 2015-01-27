@@ -17,7 +17,7 @@ urlpatterns = patterns('',
 	('^fileserver/token/$','service.views.token'),
 	('^fileserver/upload/$','service.views.upload'),
     ('^fileserver/get/(.+)/$','service.views.getFile'),
-    ('^fileserver/del/(.+)/$','service.views.delFile'),
+    ('^fileserver/del/$','service.views.delFile'),
     ('^fileserver/info/(.+)/$','service.views.infoFile'),
     ('^fileserver/doc2html/(.+)/$','service.views.doc2html'),
     
