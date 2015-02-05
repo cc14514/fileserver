@@ -305,8 +305,9 @@ def getFile(request,id):
 			return response
 		else:
 			return HttpResponse("not_found",content_type="text/html ; charset=utf8")
-	except :
-		return HttpResponse("not_found",content_type="text/html ; charset=utf8")
+	except Exception,e :
+		logger.error(e)
+		return HttpResponse("exception",content_type="text/html ; charset=utf8")
 
 def delFile(request):
 	logger.debug("<del> method="+request.method)
