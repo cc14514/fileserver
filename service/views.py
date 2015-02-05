@@ -299,7 +299,7 @@ def getFile(request,id):
 			else:	
 				filename = idx.get('file_name')
 				response = HttpResponse(wrapper,mimetype='application/octet-stream') 
-				response['Content-Disposition'] = 'attachment; filename=%s' % filename
+				response['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf8')
 			response['Content-Length'] = os.path.getsize(f)
 			response['Content-Encoding'] = 'utf-8'
 			return response
