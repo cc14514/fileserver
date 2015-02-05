@@ -242,7 +242,7 @@ def upload(request):
 		if request.POST.has_key('watermark') and 'false' == request.POST.get('watermark'):
 			watermark = False
 		auth = False
-		if request.POST.has_key('auth') and 'true' == request.POST.get('auth'):
+		if request.POST.has_key('auth') and request.POST.get('auth'):
 			auth = True 
 		# 文件流
 		sio = readFile(my_file)
@@ -277,7 +277,7 @@ def getFile(request,id):
 		idx = getIndex({'pk':id})
 		logger.debug("=======> idx = %s" % idx)
 		if idx :
-			if idx.get('auth') and 'true' == idx.get('auth'):	
+			if idx.get('auth'):	
 				token = get_token(request)
 				if token:
 					if check_token(token):
@@ -312,7 +312,7 @@ def delFile(request):
 			logger.debug("[del] method="+request.method+" ; id="+id)
 			idx = getIndex({'pk':id})
 			logger.debug("=====> idx = %s" % idx)
-			if idx.get('auth') and 'true' == idx.get('auth'):	
+			if idx.get('auth') : 
 				token = get_token(request)
 				if token:
 					if check_token(token):
