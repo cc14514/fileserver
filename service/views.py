@@ -306,6 +306,10 @@ def getFile(request,id):
 		else:
 			return HttpResponse("not_found",content_type="text/html ; charset=utf8")
 	except Exception,e :
+		err = traceback.format_exc()
+		logger.info('======= ERROR ====== %s' % 'start')
+		logger.info('%s' % err)
+		logger.info('======= ERROR ====== %s' % 'end')
 		logger.error(e)
 		return HttpResponse("exception",content_type="text/html ; charset=utf8")
 
