@@ -216,7 +216,11 @@ def upload(request):
 	if 'POST' == request.method and request.FILES:
 		# 附件的流
 		my_file = request.FILES['file']
-		logger.debug('file_name==%s' % my_file.name)
+		if request.POST.has_key('file_name'):
+			file_name = request.POST.get('file_name')
+		else:
+			file_name = my_file.name
+		logger.debug('file_name==%s' % file_name)
 		# 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可
 		appid = request.POST.get('appid')
 		# appid 和 appkey 要匹配，否则不能执行写操作
@@ -253,7 +257,7 @@ def upload(request):
 			appid = appid,
 			id = id,
 			file_type = file_type,
-			file_name = my_file.name,
+			file_name = file_name,
 			watermark = watermark,
 			string_io = sio,
 			output_path = spath,
