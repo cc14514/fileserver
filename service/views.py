@@ -246,6 +246,7 @@ def upload(request):
 		if request.POST.has_key('watermark') and 'false' == request.POST.get('watermark'):
 			watermark = False
 		auth = False
+		logger.debug('request__post:: id=%s ; auth=%s' % (id,request.POST.get('auth')))
 		if request.POST.has_key('auth') and request.POST.get('auth'):
 			auth = bool(request.POST.get('auth')) 
 		# 文件流
