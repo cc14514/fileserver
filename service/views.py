@@ -247,7 +247,7 @@ def upload(request):
 			watermark = False
 		auth = False
 		if request.POST.has_key('auth') and request.POST.get('auth'):
-			auth = True 
+			auth = bool(request.POST.get('auth')) 
 		# 文件流
 		sio = readFile(my_file)
 		# 存储地址
