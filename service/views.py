@@ -11,7 +11,7 @@ import pymongo
 import logging
 import traceback
 import os
-import StringIO
+import StringIO,urllib
 import fileserver.settings as settings
 import commands
 import redis
@@ -32,6 +32,22 @@ db = conn.fileserver
 ########################################
 ## private method 
 ########################################
+
+def downloadFileByUrl(url):
+    try: 
+        urlopen=urllib.URLopener() 
+        fp = urlopen.open(url) 
+        data = fp.read() 
+        fp.close() 
+        sio = StringIO.StringIO()
+        sio.write(data)
+        sio.seek(0)
+        return sio
+    except IOError, error: 
+        logger.error("DOWNLOAD %s ERROR!==>>%s" % (url, error)) 
+    except Exception, e: 
+        logger.error("Exception==>> %s" % e)     
+	return None
 
 def appendIndex(args):
 	coll = db.fileindex
@@ -208,19 +224,15 @@ def upload(request):
 			<p>file_type:<input type="text" name="file_type" value="image" /></p>
 			<!-- # 是否加水印, 如果 file_type=image 则默认 true,可选值 true / false -->
 			<p>watermark:<input type="text" name="watermark" value="true" /></p>
+			<!-- # 文件的 url ，如果传递了 url,则优先处理 url，忽略附件的流对象 -->
+			<p>url:<input type="text" name="url" /></p>
 			<!-- 附件 -->
 			<p>file:<input type="file" name="file" /></p>
 		</form>
 	'''
 	success = {'success':True}
-	if 'POST' == request.method and request.FILES:
-		# 附件的流
-		my_file = request.FILES['file']
-		if request.POST.has_key('file_name'):
-			file_name = request.POST.get('file_name')
-		else:
-			file_name = my_file.name
-		logger.debug('file_name==%s' % file_name)
+	if 'POST' == request.method :
+		
 		# 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可
 		appid = request.POST.get('appid')
 		# appid 和 appkey 要匹配，否则不能执行写操作
@@ -237,6 +249,31 @@ def upload(request):
 		id = uuid.uuid4().hex
 		if request.POST.has_key('id') and request.POST.get('id') :
 			id = request.POST.get('id')
+		# 存储地址
+		spath = genStorePath()
+		# 文件可以是一个 url，此处会抓去这个url对应的资源
+		if request.POST.has_key('url'):
+			url = request.POST.get('url')
+			sio = downloadFileByUrl(url)
+			if(sio):
+				file_name = id 
+			else:
+				return HttpResponse('{"success":false,"entity":{"reason":"bad_source_url"}}', content_type='text/json;charset=utf8')
+		elif request.FILES:
+			# 附件的流
+			my_file = request.FILES['file']
+			file_name = my_file.name
+			# 文件流
+			sio = readFile(my_file)
+		else :
+			return HttpResponse('{"success":false,"entity":{"reason":"not_empty_file_or_url"}}', content_type='text/json;charset=utf8')
+			
+		
+		if request.POST.has_key('file_name'):
+			file_name = request.POST.get('file_name')
+
+		logger.debug('file_name==%s' % file_name)
+
 		# 附件类型，file / image 文件或 image，默认 image
 		file_type = 'image'
 		if request.POST.has_key('file_type') :
@@ -249,10 +286,6 @@ def upload(request):
 		logger.debug('request__post:: id=%s ; auth=%s' % (id,request.POST.get('auth')))
 		if request.POST.has_key('auth') and 'true' == request.POST.get('auth').lower() :
 			auth = True	
-		# 文件流
-		sio = readFile(my_file)
-		# 存储地址
-		spath = genStorePath()
 		
 		handlerUpload(
 			appid = appid,
