@@ -25,6 +25,8 @@
         <p>watermark:<input type="text" name="watermark" value="true" /></p>
         <!-- # 下载和删除资源时是否需要鉴权，auth=true 鉴权，auth=false 不鉴权，默认 false -->
         <p>auth:<input type="text" name="auth" value="false" /></p>
+        <!-- # 可以根据传递的url参数，抓去对应的资源，url和file同时传递时，优先处理 url -->
+        <p>url:<input type="text" name="url" value="" /></p>
         <!-- 附件 -->
         <p>file:<input type="file" name="file" /></p>
         <button type="submit">submit</button>
