@@ -12,6 +12,7 @@ import logging
 import traceback
 import os
 import StringIO,urllib
+import imghdr
 import fileserver.settings as settings
 import commands
 import redis
@@ -124,6 +125,10 @@ def handlerUpload(**args):
 			# 不加水印
 			img.save(output,img.format)
 		img.close()
+		ex = imghdr.what(output)
+		if ex:
+			if not file_name.endswith(ex):
+				file_name = '%s.%s' % (file_name,ex)
 	else:
 		output_stream = open(output,'w')
 		output_stream.write(string_io.read())
@@ -132,8 +137,10 @@ def handlerUpload(**args):
 		string_io.close()
 	now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
 	# 创建索引到 mongodb
-	appendIndex({'pk':id,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now,'auth':auth})
+	size = os.path.getsize(output)
+	appendIndex({'pk':id,'size':size,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now,'auth':auth})
 	string_io.close()
+	return size
 
 def genStorePath():
 	base = settings.root_path
@@ -287,7 +294,7 @@ def upload(request):
 		if request.POST.has_key('auth') and 'true' == request.POST.get('auth').lower() :
 			auth = True	
 		
-		handlerUpload(
+		size = handlerUpload(
 			appid = appid,
 			id = id,
 			file_type = file_type,
@@ -297,7 +304,7 @@ def upload(request):
 			output_path = spath,
 			auth = auth
 		)
-		success['entity'] = {'id':id}
+		success['entity'] = {'id':id,'size':size}
 	else:
 		success['success'] = False
 		success['entity'] = {"reason":"only_accept_post"}
