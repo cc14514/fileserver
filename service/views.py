@@ -16,6 +16,7 @@ import imghdr
 import fileserver.settings as settings
 import commands
 import redis
+from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from django.core.servers.basehttp import FileWrapper
 
@@ -79,6 +80,7 @@ def resizeImg(img,width):
 	rtn = img.resize((int(width),int(height)))
 	img.close()
 	return rtn
+
 def handlerUpload(**args):
 	logger.debug(args)
 	id = args.get('id')
@@ -189,6 +191,7 @@ def get_token(request):
 ## http handler
 ############################################
 
+@csrf_exempt
 def token(request):
 	'''
 	对附件进行删除操作时，需要从此获取token先，然后才能删除
@@ -216,7 +219,7 @@ def token(request):
 	except:
 		return HttpResponse('{"success":false,"entity":{"reason":"error_params"}}', content_type='text/json;charset=utf8')
 
-
+@csrf_exempt
 def upload(request):
 	'''
 	附件上传 
@@ -354,6 +357,7 @@ def getFile(request,id):
 		logger.error(e)
 		return HttpResponse("exception",content_type="text/html ; charset=utf8")
 
+@csrf_exempt
 def delFile(request):
 	logger.debug("<del> method="+request.method)
 	try:
