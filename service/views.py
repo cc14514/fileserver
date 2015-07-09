@@ -502,6 +502,8 @@ def callback_reload_cfg(request):
     参数 :
         token 对应 fileserver settings 中的 SECRET_KEY 参数
         appid 需要重新加载的应用名
+    
+    TODO 每个回调都要广播到所有节点，在集群环境中
     '''
     sk = settings.SECRET_KEY
     if request.method == 'GET':

@@ -1,3 +1,5 @@
+#/usr/bin/env python
+#coding=utf8
 from django.conf.urls import patterns, include, url
 
 # Uncomment the next two lines to enable the admin:
@@ -20,5 +22,6 @@ urlpatterns = patterns('',
     ('^fileserver/del/$','service.views.delFile'),
     ('^fileserver/info/(.+)/$','service.views.infoFile'),
     ('^fileserver/doc2html/(.+)/$','service.views.doc2html'),
-    
+    # 重新加载配置 
+	('^callback/reload_cfg/$','service.views.callback_reload_cfg'),
 )
