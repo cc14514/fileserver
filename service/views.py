@@ -495,3 +495,23 @@ def doc2html(request,id):
 	except Exception,e :
 		logger.error(e)
 		return HttpResponse('{"success":false,"entity":{"reason":"%s"}}' % (e),content_type="text/json ; charset=utf8")
+
+def callback_reload_cfg(request):
+    '''
+    emsgadmin 会回调这个接口完成配置重载
+    参数 :
+        token 对应 fileserver settings 中的 SECRET_KEY 参数
+        appid 需要重新加载的应用名
+    '''
+    sk = settings.SECRET_KEY
+    if request.method == 'GET':
+        token = request.GET.get('token')
+        appid = request.GET.get('appid')
+    elif request.method == 'POST':
+        token = request.POST.get('token')
+        appid = request.POST.get('appid')
+    if token and token == sk : 
+        app_cfg.reload(appid)
+        return HttpResponse('{"success":true}',content_type="text/json ; charset=utf8")
+    else:
+        return HttpResponse('{"success":false,"entity":{"reason":"secret key error"}}',content_type="text/json ; charset=utf8")
