@@ -38,7 +38,7 @@ class App_cfg(object):
     然后提供重新加载的函数以便修改配置
     '''
     def __init__(self):
-        reload()
+        self.reload()
 
     def has_key(self,key):
         if self.map and self.map.has_key(key):
