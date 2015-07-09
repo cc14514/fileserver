@@ -64,7 +64,13 @@ class App_cfg(object):
             map.pop(appid)
         if cfgs:
             for cfg in cfgs:
-                map[cfg.appid] = cfg.__dict__
+                itm = cfg.__dict__
+                try :
+                    # 水印
+                    itm['watermark'] = itm.pop('icon')
+                except:
+                    pass
+                map[cfg.appid] = itm 
         logger.debug('app_cfg__map = %s' % map)
         self.map = map
 
@@ -121,67 +127,71 @@ def resizeImg(img,width):
 	return rtn
 
 def handlerUpload(**args):
-	logger.debug(args)
-	id = args.get('id')
-	output_path = args.get('output_path')
-	output = os.path.join(output_path,id)
-	string_io = args.get('string_io')
-	appid = args.get('appid')
-	file_type = args.get('file_type')
-	file_name = args.get('file_name')
-	watermark = args.get('watermark')
-	auth = args.get('auth')
-	if 'image' == file_type :
-		img = Image.open(string_io)
-		logger.info("_______"+img.format)
-		if watermark :
-			cfg = app_cfg.get(appid)
-			# 加水印
-			wp = settings.watermark_def
-			if cfg and cfg.has_key('watermark'):
-				w = cfg.get('watermark')
-				if w and os.path.exists(w):
-					wp = w
-			wp_img = Image.open(wp)
-			logger.debug("wp_mode=%s" % wp_img.mode)
+    logger.debug(args)
+    id = args.get('id')
+    output_path = args.get('output_path')
+    output = os.path.join(output_path,id)
+    string_io = args.get('string_io')
+    appid = args.get('appid')
+    file_type = args.get('file_type')
+    file_name = args.get('file_name')
+    watermark = args.get('watermark')
+    auth = args.get('auth')
+    if 'image' == file_type :
+        img = Image.open(string_io)
+        logger.info("_______"+img.format)
+        if watermark :
+            cfg = app_cfg.get(appid)
+            # 加水印,默认的水印
+            wp = settings.watermark_def
+            if cfg and cfg.has_key('watermark'):
+                try:
+                    wk = cfg.get('watermark')
+                    idx = getIndex({'pk':wk})
+                    w = idx.get('path')
+                    if w and os.path.exists(w):
+                        wp = w 
+                except:pass
+            wp_img = Image.open(wp)
+            logger.debug("wp_mode=%s" % wp_img.mode)
 			# 水印尺寸
-			wp_width,wp_height = wp_img.size
+            wp_width,wp_height = wp_img.size
 			# 原图尺寸
-			img_width,img_height = img.size
-			(r,g,b,a) = wp_img.split()
-			# todo 右下角完美贴合，并且保证水印的高度比例为30%
-			# 水印高度与原图的比例不能超过30%，如果超过则要将水印缩小到原图的30%高度
-			bl = 0.3	
-			if img_height * bl < wp_height:
-				wp_img = resizeImg(wp_img,int(img_width*bl))
-				wp_width,wp_height = wp_img.size	
-				(r,g,b,a) = wp_img.split()
-			box = (img_width-wp_width,img_height-wp_height)
-			logger.debug("wp_img_size=%s ; src_img_size=%s" % (wp_img.size,img.size))
-			logger.debug("box=%s ; mask=%s" % (box,a))
-			img.paste(wp_img,box=box,mask=a)	
-			img.save(output,img.format)
-			wp_img.close()
-		else:
-			# 不加水印
-			img.save(output,img.format)
-		img.close()
-		ex = imghdr.what(output)
-		if ex:
-			if not file_name.endswith(ex):
-				file_name = '%s.%s' % (file_name,ex)
-	else:
-		output_stream = open(output,'w')
-		output_stream.write(string_io.read())
-		output_stream.flush()
-		output_stream.close()
-		string_io.close()
-	now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
-	# 创建索引到 mongodb
-	size = os.path.getsize(output)
-	appendIndex({'pk':id,'size':size,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now,'auth':auth})
-	string_io.close()
-	return size
+            img_width,img_height = img.size
+            (r,g,b,a) = wp_img.split()
+            # todo 右下角完美贴合，并且保证水印的高度比例为30%
+            # 水印高度与原图的比例不能超过30%，如果超过则要将水印缩小到原图的30%高度
+            bl = 0.3	
+            if img_height * bl < wp_height:
+                wp_img = resizeImg(wp_img,int(img_width*bl))
+                wp_width,wp_height = wp_img.size	
+                (r,g,b,a) = wp_img.split()
+            box = (img_width-wp_width,img_height-wp_height)
+            logger.debug("wp_img_size=%s ; src_img_size=%s" % (wp_img.size,img.size))
+            logger.debug("box=%s ; mask=%s" % (box,a))
+            img.paste(wp_img,box=box,mask=a)	
+            img.save(output,img.format)
+            wp_img.close()
+        else:
+            # 不加水印
+            img.save(output,img.format)
+        img.close()
+        ex = imghdr.what(output)
+        if ex:
+            if not file_name.endswith(ex):
+                file_name = '%s.%s' % (file_name,ex)
+    else:
+        output_stream = open(output,'w')
+        output_stream.write(string_io.read())
+        output_stream.flush()
+        output_stream.close()
+        string_io.close()
+    now = time.strftime('%Y-%m-%d %H:%M:%S',time.localtime(time.time()))
+    # 创建索引到 mongodb
+    size = os.path.getsize(output)
+    appendIndex({'pk':id,'size':size,'path':output,'appid':appid,'file_type':file_type,'file_name':file_name,'ct':now,'auth':auth})
+    string_io.close()
+    return size
 
 def genStorePath():
 	base = settings.root_path
