@@ -38,7 +38,7 @@ class App_cfg(object):
     然后提供重新加载的函数以便修改配置
     '''
     def __init__(self):
-        ogger.debug('app_cfg__map__new')
+        logger.debug('app_cfg__map__new')
         self.map = dict()
         self.reload()
 
