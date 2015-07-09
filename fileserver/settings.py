@@ -25,11 +25,6 @@ if DEBUG :
 	# 默认的水印图片
 	watermark_def = '/app/watermark_test.png'
 	# 存放 appid 对应的 appkey 和水印文件
-	app_cfg = {
-		'admin':{
-			'appkey':'lancefox', # appkey 相当于密码
-		}
-	}
 	
 	DATABASES = {
 		'default': {
@@ -48,38 +43,32 @@ else:
 ###############################################
 # 生产环境
 ###############################################
-	redis_host = '192.168.12.212'
+	redis_host = '192.168.2.100'
 	redis_port = 6379
 	
 	# 存储图片索引的 mongodb 
 	mongo_port = '27017'
-	mongo_host = '192.168.12.213'
-	mongo_replicaset = 'part1'
+	mongo_host = '192.168.2.100'
+	mongo_replicaset = 'lc'
 	
 	# 存放图片的跟目录
-	root_path = '/app'
+	root_path = '/home/appusr/var/lib/fileserver'
 	
 	# 默认的水印图片
-	watermark_def = '/app/watermark_test.png'
-	# 存放 appid 对应的 appkey 和水印文件
-	app_cfg = {
-		'admin':{
-			'appkey':'lancefox', # appkey 相当于密码
+	watermark_def = '/home/appusr/var/etc/fileserver/def.png'
+	
+	DATABASES = {
+		'default': {
+			'ENGINE': 'django.db.backends.mysql', 
+			'NAME': 'db_emsg', 
+			'USER': 'root',
+			'PASSWORD': '123456',
+			'HOST': '192.168.2.101',  
+			'PORT': '3306',
 		}
 	}
 	
-	DATABASES = {
-	    'default': {
-	        'ENGINE': 'django.db.backends.', 
-	        'NAME': '',                      
-	        'USER': '',
-	        'PASSWORD': '',
-	        'HOST': '',                      
-	        'PORT': '',         
-	    }
-	}
-	
-	ALLOWED_HOSTS = []
+	ALLOWED_HOSTS = [ 'localhost', '127.0.0.1', '192.168.2.100', '202.85.221.165', 'fileserver.lczybj.com' ]
 
 
 

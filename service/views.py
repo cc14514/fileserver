@@ -19,9 +19,9 @@ import redis
 from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from django.core.servers.basehttp import FileWrapper
-
+from service.models import *
 logger = logging.getLogger(__name__)
-app_cfg = settings.app_cfg
+
 
 (rhost,rport) = (settings.redis_host,settings.redis_port)
 redis_cli = redis.Redis(host=rhost,port=rport)
@@ -30,6 +30,46 @@ redis_cli = redis.Redis(host=rhost,port=rport)
 logger.debug( "mongodb_info::> %s ; %s ; %s" % (host,port,repl) )
 conn = pymongo.MongoClient(host=host,port=int(port),replicaset=repl)
 db = conn.fileserver
+
+
+class App_cfg(object):
+    '''
+    在数据库加载配置，缓存到这个对象中，
+    然后提供重新加载的函数以便修改配置
+    '''
+    def __init__(self):
+        reload()
+
+    def has_key(self,key):
+        if self.map and self.map.has_key(key):
+            return True
+        else:
+            return False
+    
+    def get(self,key):
+        if self.map and self.map.has_key(key):
+            return self.map.get(key)
+        return None
+    
+    def reload(self,appid=None):
+        cfgs = FileserverCfg.objects.all()
+        if self.map :
+            logger.debug('app_cfg__map__reload')
+            map = self.map
+        else:
+            logger.debug('app_cfg__map__new')
+            map = dict()
+        if appid:
+            cfgs = cfgs.filter(appid=appid)
+            logger.debug('app_cfg__map__reload_appid = %s' % appid)
+            map.pop(appid)
+        if cfgs:
+            for cfg in cfgs:
+                map[cfg.appid] = cfg.__dict__
+        logger.debug('app_cfg__map = %s' % map)
+        self.map = map
+
+app_cfg = App_cfg()
 
 ########################################
 ## private method 
