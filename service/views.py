@@ -413,50 +413,49 @@ def getFile(request,id):
 
 @csrf_exempt
 def delFile(request):
-	logger.debug("<del> method="+request.method)
-	try:
-		if 'POST' == request.method :
-			id = request.POST.get('id')
-			logger.debug("[del] method="+request.method+" ; id="+id)
-			idx = getIndex({'pk':id})
-			logger.debug("=====> idx = %s" % idx)
-			if idx.get('auth') : 
-				token = get_token(request)
-				if token:
-					if check_token(token):
-						pass
-					else:
-						success = '{"success":false,"entity":{"reason":"error_token"}}'
-						logger.debug(id+"__"+success)
-						return HttpResponse(success,content_type="text/json ; charset=utf8")
-				else:
-					success = '{"success":false,"entity":{"reason":"not_found_token"}}'
-					logger.debug(id+"__"+success)
-					return HttpResponse(success,content_type="text/json ; charset=utf8")
-			else:
-				if request.POST.has_key('appid') and request.POST.has_key('appkey'):
-					appid,appkey = request.POST.get('appid'),request.POST.get('appkey')
-					if app_cfg.get(appid) and appkey == app_cfg.get(appid).get('appkey'):
-						pass
-					else:
-						success = '{"success":false,"entity":{"reason":"error_appkey"}}'
-						logger.debug(id+"__"+success)
-						return HttpResponse(success,content_type="text/json ; charset=utf8")
-				else:
-					success = '{"success":false,"entity":{"reason":"error_params"}}'
-					logger.debug(id+"__"+success)
-					return HttpResponse(success,content_type="text/json ; charset=utf8")
-			f = idx.get('path')
-			os.remove(f)
-			delIndex({'pk':id})
-			success = '{"success":true}'
-			logger.debug(id+"__"+success)
-			return HttpResponse(success,content_type="text/json ; charset=utf8")
-		else:
+    logger.debug("<del> method="+request.method)
+    try:
+        if 'POST' == request.method :
+            id = request.POST.get('id')
+            logger.debug("[del] method="+request.method+" ; id="+id)
+            idx = getIndex({'pk':id})
+            logger.debug("=====> idx = %s" % idx)
+            if idx.get('auth') : 
+                token = get_token(request)
+                if token:
+                    if check_token(token):
+                        delIndex({'pk':id})
+                    else:
+                        success = '{"success":false,"entity":{"reason":"error_token"}}'
+                        logger.debug(id+"__"+success)
+                        return HttpResponse(success,content_type="text/json ; charset=utf8")
+            	else:
+            		success = '{"success":false,"entity":{"reason":"not_found_token"}}'
+            		logger.debug(id+"__"+success)
+            		return HttpResponse(success,content_type="text/json ; charset=utf8")
+            else:
+            	if request.POST.has_key('appid') and request.POST.has_key('appkey'):
+            		appid,appkey = request.POST.get('appid'),request.POST.get('appkey')
+            		if app_cfg.get(appid) and appkey == app_cfg.get(appid).get('appkey'):
+            			delIndex({'pk':id})
+            		else:
+            			success = '{"success":false,"entity":{"reason":"error_appkey"}}'
+            			logger.debug(id+"__"+success)
+            			return HttpResponse(success,content_type="text/json ; charset=utf8")
+            	else:
+            		success = '{"success":false,"entity":{"reason":"error_params"}}'
+            		logger.debug(id+"__"+success)
+            		return HttpResponse(success,content_type="text/json ; charset=utf8")
+            f = idx.get('path')
+            os.remove(f)
+            success = '{"success":true}'
+            logger.debug(id+"__"+success)
+            return HttpResponse(success,content_type="text/json ; charset=utf8")
+        else:
 			success = '{"success":false,"entity":{"reason":"only_accept_post"}}'
 			logger.debug(id+"__"+success)
 			return HttpResponse(success,content_type="text/json ; charset=utf8")
-	except :
+    except :
 		success = '{"success":false,"entity":{"reason":"not_found"}}'
 		logger.debug(id+"__"+success)
 		return HttpResponse(success,content_type="text/json ; charset=utf8")
