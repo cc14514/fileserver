@@ -61,7 +61,8 @@ class App_cfg(object):
         if appid:
             cfgs = cfgs.filter(appid=appid)
             logger.debug('app_cfg__map__reload_appid = %s' % appid)
-            map.pop(appid)
+            if map.has_key(appid):
+                map.pop(appid)
         if cfgs:
             for cfg in cfgs:
                 itm = cfg.__dict__
