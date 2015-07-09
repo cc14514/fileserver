@@ -20,10 +20,10 @@ if DEBUG :
 	mongo_replicaset = 'part1'
 	
 	# 存放图片的跟目录
-	root_path = '/app'
+	root_path = '/home/appusr/var/lib/fileserver'
 	
 	# 默认的水印图片
-	watermark_def = '/app/watermark_test.png'
+	watermark_def = '/home/appusr/var/etc/fileserver/def.png'
 	# 存放 appid 对应的 appkey 和水印文件
 	
 	DATABASES = {
