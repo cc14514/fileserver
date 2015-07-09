@@ -62,7 +62,9 @@ class App_cfg(object):
             cfgs = cfgs.filter(appid=appid)
             logger.debug('app_cfg__map__reload_appid = %s' % appid)
             if map.has_key(appid):
-                map.pop(appid)
+                p = map.pop(appid)
+                logger.debug('app_cfg__map__pop = %s' % p )
+                logger.debug('app_cfg__map__pop_map = %s' % map )
         if cfgs:
             for cfg in cfgs:
                 itm = cfg.__dict__
@@ -71,7 +73,9 @@ class App_cfg(object):
                     itm['watermark'] = itm.pop('icon')
                 except:
                     pass
+                logger.debug('app_cfg__map__append = %s' % itm )
                 map[cfg.appid] = itm 
+
         logger.debug('app_cfg__map = %s' % map)
         self.map = map
 
