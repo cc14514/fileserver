@@ -38,6 +38,8 @@ class App_cfg(object):
     然后提供重新加载的函数以便修改配置
     '''
     def __init__(self):
+        ogger.debug('app_cfg__map__new')
+        self.map = dict()
         self.reload()
 
     def has_key(self,key):
@@ -53,12 +55,9 @@ class App_cfg(object):
     
     def reload(self,appid=None):
         cfgs = FileserverCfg.objects.all()
-        if self.map :
-            logger.debug('app_cfg__map__reload')
-            map = self.map
-        else:
-            logger.debug('app_cfg__map__new')
-            map = dict()
+        logger.debug('app_cfg__map__reload')
+        map = self.map
+            
         if appid:
             cfgs = cfgs.filter(appid=appid)
             logger.debug('app_cfg__map__reload_appid = %s' % appid)
