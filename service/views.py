@@ -17,6 +17,7 @@ import imghdr
 import fileserver.settings as settings
 import commands
 import redis
+import urlparse 
 from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from django.core.servers.basehttp import FileWrapper
@@ -103,13 +104,20 @@ def downloadFileByUrl(url):
 	return None
 
 def appendIndex(args):
-	coll = db.fileindex
-	if args.get('pk') and coll.find_one({'pk':args.get('pk')}) :
-		logger.debug('[update] args = %s' % args)
-		coll.remove({'pk':args.get('pk')})
-	else:
-		logger.debug('[insert] args = %s' % args)
-	coll.insert(args)
+    '''
+    将文件添加到索引中，值得注意的是节点信息也应该放在信息中
+    节点信息在 settings.SOURCE_NODE 中配置
+    SOURCE_NODE 应该是一个可以从公网访问的地址，比如一个公网ip或者一个三级域名，如果是域名则只能定位到一个ip上
+    '''
+    # 下载资源时，需要用 nginx 代理来获取最大的 io 效率，这个url就是nginx的目录
+    source_node = settings.SOURCE_NODE
+    coll = db.fileindex
+    if args.get('pk') and coll.find_one({'pk':args.get('pk')}) :
+    	logger.debug('[update] args = %s' % args)
+    	coll.remove({'pk':args.get('pk')})
+    else:
+    	logger.debug('[insert] args = %s' % args)
+    coll.insert(args)
 	
 def getIndex(args):
 	coll = db.fileindex
@@ -351,7 +359,7 @@ def upload(request):
 		logger.debug('request__post:: id=%s ; auth=%s' % (id,request.POST.get('auth')))
 		if request.POST.has_key('auth') and 'true' == request.POST.get('auth').lower() :
 			auth = True	
-		
+ 
 		size = handlerUpload(
 			appid = appid,
 			id = id,
@@ -475,7 +483,8 @@ def infoFile(request,id):
 		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
 
 def test(request,node):
-    url = 'http://192.168.12.%s/2015/01/01/test' % node 
+    url = 'http://localhost/2015/01/01/test' 
+    #url = 'http://192.168.12.%s/2015/01/01/test' % node 
     logger.info(url)
     return HttpResponseRedirect(url) 
     
