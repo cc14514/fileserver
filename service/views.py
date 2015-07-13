@@ -106,11 +106,15 @@ def downloadFileByUrl(url):
 def appendIndex(args):
     '''
     将文件添加到索引中，值得注意的是节点信息也应该放在信息中
-    节点信息在 settings.SOURCE_NODE 中配置
-    SOURCE_NODE 应该是一个可以从公网访问的地址，比如一个公网ip或者一个三级域名，如果是域名则只能定位到一个ip上
+    
+    当前节点所关联的下载服务，nginx＋静态资源 方式搭建,
+    下载文件时，用 http://current_node/dir/fid 的方式
+    所以上传文件时需要把 current_node 放入 index 中
+    current_node = '192.168.12.212'
     '''
-    # 下载资源时，需要用 nginx 代理来获取最大的 io 效率，这个url就是nginx的目录
-    source_node = settings.SOURCE_NODE
+    current_node = settings.current_node
+    args['node'] = current_node
+    
     coll = db.fileindex
     if args.get('pk') and coll.find_one({'pk':args.get('pk')}) :
     	logger.debug('[update] args = %s' % args)
@@ -381,44 +385,58 @@ def upload(request):
 
 
 def getFile(request,id):
-	logger.debug("[get] method="+request.method+" ; id="+id)
-	try:
-		if request.GET.has_key('size'):
-			size = request.GET.get('size')
-		idx = getIndex({'pk':id})
-		logger.debug("=======> idx = %s" % idx)
-		if idx :
-			if idx.get('auth'):	
-				token = get_token(request)
-				if token:
-					if check_token(token):
-						pass
-					else:
-						return HttpResponse("error_token",content_type="text/html ; charset=utf8")
-				else:
-					return HttpResponse("not_found_token",content_type="text/html ; charset=utf8")
-
-			f = idx.get('path')
-			filename = idx.get('file_name')
-			wrapper = FileWrapper(file(f))
-			if 'image' == idx.get('file_type'):
-				response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
-			else:	
-				filename = idx.get('file_name')
-				response = HttpResponse(wrapper,mimetype='application/octet-stream') 
-				response['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf8')
-			response['Content-Length'] = os.path.getsize(f)
-			response['Content-Encoding'] = 'utf-8'
-			return response
-		else:
-			return HttpResponse("not_found",content_type="text/html ; charset=utf8")
-	except Exception,e :
-		#err = traceback.format_exc()
-		#logger.info('======= ERROR ====== %s' % 'start')
-		#logger.info('%s' % err)
-		#logger.info('======= ERROR ====== %s' % 'end')
-		logger.error(e)
-		return HttpResponse("exception",content_type="text/html ; charset=utf8")
+    logger.debug("[get] method="+request.method+" ; id="+id)
+    try:
+        if request.GET.has_key('size'):
+            size = request.GET.get('size')
+        idx = getIndex({'pk':id})
+        # 当前节点
+        current_node = settings.current_node
+        # 资源所在节点
+        node = idx.get('node')
+        logger.debug("=======> idx = %s" % idx)
+        if idx :
+            if idx.get('auth'):	
+                # 需要鉴权
+                token = get_token(request)
+                # 如果资源不在当前节点，则将请求转到资源所在节点
+                if node != current_node:
+                    url = urlparse.urljoin('http://%s' % node,'fileserver/get/%s/?token=%s' % (id,token))
+                    logger.debug('auth_source_redirect ::> %s' % url)
+                    return HttpResponseRedirect(url)
+                if token:
+                    if not check_token(token):
+                        return HttpResponse("error_token",content_type="text/html ; charset=utf8")
+                else:
+                    return HttpResponse("not_found_token",content_type="text/html ; charset=utf8")
+                f = idx.get('path')
+                filename = idx.get('file_name')
+                wrapper = FileWrapper(file(f))
+                if 'image' == idx.get('file_type'):
+                    response = HttpResponse(wrapper, content_type='text/plain;charset=utf8')
+                else:	
+                    filename = idx.get('file_name')
+                    response = HttpResponse(wrapper,mimetype='application/octet-stream') 
+                    response['Content-Disposition'] = 'attachment; filename=%s' % filename.encode('utf8')
+                response['Content-Length'] = os.path.getsize(f)
+                response['Content-Encoding'] = 'utf-8'
+                return response
+            else:
+                # 公开访问
+                # 公开访问时，nginx 提供访问服务，http://{node}/dir/filename/
+                path = idx.get('path')
+                (path,f) = os.path.split(path)
+                (path,d) = os.path.split(path)
+                (path,m) = os.path.split(path)
+                (path,y) = os.path.split(path)
+                url = urlparse.urljoin('http://%s' % node,'/%s/%s/%s/%s/' % (y,m,d,f))
+                logger.debug('free file url ::> %s' % url)
+                return HttpResponseRedirect(url)
+        else:
+            return HttpResponse("not_found",content_type="text/html ; charset=utf8")
+    except Exception,e :
+        logger.error(e)
+        return HttpResponse("exception",content_type="text/html ; charset=utf8")
 
 @csrf_exempt
 def delFile(request):
@@ -483,8 +501,7 @@ def infoFile(request,id):
 		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
 
 def test(request,node):
-    url = 'http://localhost/2015/01/01/test' 
-    #url = 'http://192.168.12.%s/2015/01/01/test' % node 
+    url = 'http://192.168.12.%s/2015/01/01/test' % node 
     logger.info(url)
     return HttpResponseRedirect(url) 
     

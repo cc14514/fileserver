@@ -1,16 +1,18 @@
 # !/usr/bin/env python 
 # coding=utf-8
-
-
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
-
-# Django settings for fileserver project.
 
 if DEBUG :
 ###############################################
 # 开发环境
 ###############################################
+
+	# 当前节点所关联的下载服务，nginx＋静态资源 方式搭建,
+	# 下载文件时，用 http://current_node/dir/fid 的方式
+	# 所以上传文件时需要把 current_node 放入 index 中
+	current_node = '192.168.12.212'
+	
 	redis_host = '192.168.12.212'
 	redis_port = 6379
 	
@@ -43,6 +45,12 @@ else:
 ###############################################
 # 生产环境
 ###############################################
+
+	# 当前节点所关联的下载服务，nginx＋静态资源 方式搭建,
+	# 下载文件时，用 http://current_node/dir/fid 的方式
+	# 所以上传文件时需要把 current_node 放入 index 中
+	node = '202.85.221.165'
+
 	redis_host = '192.168.2.100'
 	redis_port = 6379
 	
