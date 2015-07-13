@@ -4,6 +4,7 @@
 # Create your views here.
 from django.http import HttpResponse
 from django.http import HttpRequest
+from django.http import HttpResponseRedirect
 import time 
 import json
 import uuid
@@ -473,6 +474,11 @@ def infoFile(request,id):
 	except :
 		return HttpResponse('{"success":false}',content_type="text/json ; charset=utf8")
 
+def test(request,node):
+    url = 'http://192.168.12.%s/2015/01/01/test' % node 
+    logger.info(url)
+    return HttpResponseRedirect(url) 
+    
 
 def doc2html(request,id):
 	'''

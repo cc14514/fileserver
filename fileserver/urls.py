@@ -22,6 +22,7 @@ urlpatterns = patterns('',
     ('^fileserver/del/$','service.views.delFile'),
     ('^fileserver/info/(.+)/$','service.views.infoFile'),
     ('^fileserver/doc2html/(.+)/$','service.views.doc2html'),
+    ('^fileserver/test/(.+)/$','service.views.test'),
     # 重新加载配置 
 	('^callback/reload_cfg/$','service.views.callback_reload_cfg'),
 )
