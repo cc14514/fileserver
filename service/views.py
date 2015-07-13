@@ -288,83 +288,82 @@ def token(request):
 
 @csrf_exempt
 def upload(request):
-	'''
-	附件上传 
-		<form action="http://localhost:8000/fileserver/upload" method="POST" enctype="multipart/form-data" >
-			<!-- 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可 -->
-			<p>appid:<input type="text" name="appid" value="test" /></p>
-			<!-- 口令 -->
-			<p>appkey:<input type="text" name="appkey" value="test" /></p>
-			<!-- 附件id，如果为空则服务端产生id并返回给客户端，如果非空并且服务器上有这个id对应的附件，则会覆盖此附件；-->
-			<p>appkey:<input type="text" name="appkey" value="test" /></p>
-			<!-- 附件类型，file / image 文件或 image，默认 image -->
-			<p>file_type:<input type="text" name="file_type" value="image" /></p>
-			<!-- # 是否加水印, 如果 file_type=image 则默认 true,可选值 true / false -->
-			<p>watermark:<input type="text" name="watermark" value="true" /></p>
-			<!-- # 文件的 url ，如果传递了 url,则优先处理 url，忽略附件的流对象 -->
-			<p>url:<input type="text" name="url" /></p>
-			<!-- 附件 -->
-			<p>file:<input type="file" name="file" /></p>
-		</form>
-	'''
-	success = {'success':True}
-	if 'POST' == request.method :
-		
-		# 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可
-		appid = request.POST.get('appid')
-		# appid 和 appkey 要匹配，否则不能执行写操作
-		appkey = request.POST.get('appkey')
-		# 校验 appkey 
-		if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get('appkey') :
-			# 校验通过
-			pass	
-		else:
-			# 校验失败
-			return HttpResponse('{"success":false,"entity":{"reason":"appkey_error"}}', content_type='text/json;charset=utf8')
+    '''
+    附件上传 
+    	<form action="http://localhost:8000/fileserver/upload" method="POST" enctype="multipart/form-data" >
+    		<!-- 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可 -->
+    		<p>appid:<input type="text" name="appid" value="test" /></p>
+    		<!-- 口令 -->
+    		<p>appkey:<input type="text" name="appkey" value="test" /></p>
+    		<!-- 附件id，如果为空则服务端产生id并返回给客户端，如果非空并且服务器上有这个id对应的附件，则会覆盖此附件；-->
+    		<p>appkey:<input type="text" name="appkey" value="test" /></p>
+    		<!-- 附件类型，file / image 文件或 image，默认 image -->
+    		<p>file_type:<input type="text" name="file_type" value="image" /></p>
+    		<!-- # 是否加水印, 如果 file_type=image 则默认 true,可选值 true / false -->
+    		<p>watermark:<input type="text" name="watermark" value="true" /></p>
+    		<!-- # 文件的 url ，如果传递了 url,则优先处理 url，忽略附件的流对象 -->
+    		<p>url:<input type="text" name="url" /></p>
+    		<!-- 附件 -->
+    		<p>file:<input type="file" name="file" /></p>
+    	</form>
+    '''
+    success = {'success':True}
+    if 'POST' == request.method :
+	
+        # 上传附件的应用名,如果是图片，此名称会对应一个单独的水印,通过 settings.watermark 来配置即可
+        appid = request.POST.get('appid')
+        # appid 和 appkey 要匹配，否则不能执行写操作
+        appkey = request.POST.get('appkey')
+        # 校验 appkey 
+        if appkey and app_cfg.has_key(appid) and appkey==app_cfg.get(appid).get('appkey') :
+            # 校验通过
+            pass	
+        else:
+            # 校验失败
+            return HttpResponse('{"success":false,"entity":{"reason":"appkey_error"}}', content_type='text/json;charset=utf8')
+        
+        # 附件id，如果为空则服务端产生id并返回给客户端，如果非空并且服务器上有这个id对应的附件，则会覆盖此附件；
+        id = uuid.uuid4().hex
+        if request.POST.has_key('id') and request.POST.get('id') :
+            id = request.POST.get('id')
+        # 存储地址
+        spath = genStorePath()
+        # 文件可以是一个 url，此处会抓去这个url对应的资源
+        url = request.POST.get('url')
+        if url:
+            sio = downloadFileByUrl(url)
+            if(sio):
+                file_name = id 
+            else:
+                return HttpResponse('{"success":false,"entity":{"reason":"bad_source_url"}}', content_type='text/json;charset=utf8')
+        elif request.FILES:
+            # 附件的流
+            my_file = request.FILES['file']
+            file_name = my_file.name
+            # 文件流
+            sio = readFile(my_file)
+        else :
+            return HttpResponse('{"success":false,"entity":{"reason":"not_empty_file_or_url"}}', content_type='text/json;charset=utf8')
 
-		# 附件id，如果为空则服务端产生id并返回给客户端，如果非空并且服务器上有这个id对应的附件，则会覆盖此附件；
-		id = uuid.uuid4().hex
-		if request.POST.has_key('id') and request.POST.get('id') :
-			id = request.POST.get('id')
-		# 存储地址
-		spath = genStorePath()
-		# 文件可以是一个 url，此处会抓去这个url对应的资源
-		if request.POST.has_key('url'):
-			url = request.POST.get('url')
-			sio = downloadFileByUrl(url)
-			if(sio):
-				file_name = id 
-			else:
-				return HttpResponse('{"success":false,"entity":{"reason":"bad_source_url"}}', content_type='text/json;charset=utf8')
-		elif request.FILES:
-			# 附件的流
-			my_file = request.FILES['file']
-			file_name = my_file.name
-			# 文件流
-			sio = readFile(my_file)
-		else :
-			return HttpResponse('{"success":false,"entity":{"reason":"not_empty_file_or_url"}}', content_type='text/json;charset=utf8')
-			
-		
-		if request.POST.has_key('file_name'):
-			file_name = request.POST.get('file_name')
+        if request.POST.has_key('file_name'):
+            file_name = request.POST.get('file_name')
 
-		logger.debug('file_name==%s' % file_name)
+        logger.debug('file_name==%s' % file_name)
 
-		# 附件类型，file / image 文件或 image，默认 image
-		file_type = 'image'
-		if request.POST.has_key('file_type') :
-			file_type = request.POST.get('file_type')
-		# 是否加水印, 如果 file_type=image 则默认 True
-		watermark = True
-		if request.POST.has_key('watermark') and 'false' == request.POST.get('watermark'):
-			watermark = False
-		auth = False
-		logger.debug('request__post:: id=%s ; auth=%s' % (id,request.POST.get('auth')))
-		if request.POST.has_key('auth') and 'true' == request.POST.get('auth').lower() :
-			auth = True	
- 
-		size = handlerUpload(
+        # 附件类型，file / image 文件或 image，默认 image
+        file_type = 'image'
+        if request.POST.has_key('file_type') :
+            file_type = request.POST.get('file_type')
+        # 是否加水印, 如果 file_type=image 则默认 True
+        watermark = True
+        if request.POST.has_key('watermark') and 'false' == request.POST.get('watermark'):
+            watermark = False
+        auth = False
+        logger.debug('request__post:: id=%s ; auth=%s' % (id,request.POST.get('auth')))
+        if request.POST.has_key('auth') and 'true' == request.POST.get('auth').lower() :
+            auth = True	
+
+        size = handlerUpload(
 			appid = appid,
 			id = id,
 			file_type = file_type,
@@ -373,15 +372,15 @@ def upload(request):
 			string_io = sio,
 			output_path = spath,
 			auth = auth
-		)
-		success['entity'] = {'id':id,'size':size}
-	else:
-		success['success'] = False
-		success['entity'] = {"reason":"only_accept_post"}
-
-	rtn = json.dumps(success)
-	logger.debug(rtn)
-	return HttpResponse(rtn, content_type='text/json;charset=utf8')
+        )
+        success['entity'] = {'id':id,'size':size}
+    else:
+        success['success'] = False
+        success['entity'] = {"reason":"only_accept_post"}
+        
+    rtn = json.dumps(success)
+    logger.debug(rtn)
+    return HttpResponse(rtn, content_type='text/json;charset=utf8')
 
 
 def getFile(request,id):
