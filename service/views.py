@@ -428,7 +428,7 @@ def getFile(request,id):
                 (path,d) = os.path.split(path)
                 (path,m) = os.path.split(path)
                 (path,y) = os.path.split(path)
-                url = urlparse.urljoin('http://%s' % node,'/%s/%s/%s/%s/' % (y,m,d,f))
+                url = urlparse.urljoin('http://%s' % node,'/%s/%s/%s/%s' % (y,m,d,f))
                 logger.debug('free file url ::> %s' % url)
                 return HttpResponseRedirect(url)
         else:
