@@ -7,3 +7,7 @@
 yum install -y libjpeg-devel
 
 pip install pillow
+
+pip install pymongo
+
+pip install redis
