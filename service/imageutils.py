@@ -92,6 +92,7 @@ def crop(l=None,x=0,y=0,w=None,h=None,path=None,nid=None):
         img = img_tmp.clone()
         img_tmp.close()
 
+    ww,hh = img.size
     # TODO
 
     img.crop(left=x,top=y,width=w,height=h)
