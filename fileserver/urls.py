@@ -18,11 +18,13 @@ urlpatterns = patterns('',
     # url(r'^admin/', include(admin.site.urls)),
 	('^fileserver/token/$','service.views.token'),
 	('^fileserver/upload/$','service.views.upload'),
+    ('^fileserver/get/(.+)/(.+)/$','service.views.getFileFun'),
     ('^fileserver/get/(.+)/$','service.views.getFile'),
     ('^fileserver/del/$','service.views.delFile'),
     ('^fileserver/info/(.+)/$','service.views.infoFile'),
     ('^fileserver/doc2html/(.+)/$','service.views.doc2html'),
     ('^fileserver/test/(.+)/$','service.views.test'),
-    # 重新加载配置 
+
+    # 重新加载配置
 	('^callback/reload_cfg/$','service.views.callback_reload_cfg'),
 )
