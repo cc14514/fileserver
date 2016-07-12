@@ -12,6 +12,7 @@ import pymongo
 import logging
 import traceback
 import os
+import glob
 import StringIO, urllib
 import imghdr
 import fileserver.settings as settings
@@ -22,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from wsgiref.util import FileWrapper
 from service.models import *
-from imageutils import resize,crop
+from imageutils import *
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -122,9 +123,16 @@ def appendIndex(args):
     args['node'] = current_node
 
     coll = db.fileindex
-    if args.get('pk') and coll.find_one({'pk': args.get('pk')}):
-        logger.debug('[update] args = %s' % args)
-        coll.remove({'pk': args.get('pk')})
+    if args.get('pk'):
+        _idx = coll.find_one({'pk': args.get('pk')})
+        if _idx:
+            _path = _idx.get('path')
+            if _path :
+                for _p in glob.glob('%s__*' % _path):
+                    logger.debug('[remove_cache_path] p=%s' % _p)
+                    os.remove(_p)
+            logger.debug('[update] args = %s' % args)
+            coll.remove({'pk': args.get('pk')})
     else:
         logger.debug('[insert] args = %s' % args)
     coll.insert(args)
@@ -409,7 +417,8 @@ def upload(request):
 
 
 def getFile(request, id):
-    return getFileFun(request,id)
+    return getFileFun(request, id)
+
 
 def getFileFun(request, id, funStr=None):
     logger.debug("[get] method=" + request.method + " ; id=" + id)
@@ -458,20 +467,20 @@ def getFileFun(request, id, funStr=None):
                 (path, m) = os.path.split(path)
                 (path, y) = os.path.split(path)
                 if funStr:
-                    tid = '%s__%s' % (id,hashlib.sha1(funStr).hexdigest())
+                    tid = '%s__%s' % (id, hashlib.sha1(funStr).hexdigest())
                     (a, b) = os.path.split(idx.get('path'))
-                    t = '%s/%s' % (a,tid)
-                    logger.debug('funStr=%s , tid=%s , t=%s' % (funStr,tid,t))
+                    t = '%s/%s' % (a, tid)
+                    logger.debug('funStr=%s , tid=%s , t=%s' % (funStr, tid, t))
                     if not os.path.exists(t):
                         for fun in funStr.split('&'):
-                            fun = "%s,path='%s',nid='%s')" % (fun[:-1],idx.get('path'),tid)
+                            fun = "%s,path='%s',nid='%s')" % (fun[:-1], idx.get('path'), tid)
                             eval(fun)
                         logger.debug('gen_file_to_cache , tid=%s' % tid)
                     else:
                         logger.debug('get_file_from_cache , tid=%s' % tid)
                     # 裁剪或调整大小后的图片
                     url = urlparse.urljoin('http://%s' % node, '/%s/%s/%s/%s' % (y, m, d, tid))
-                else :
+                else:
                     # 原始的图片
                     url = urlparse.urljoin('http://%s' % node, '/%s/%s/%s/%s' % (y, m, d, f))
                 logger.debug('free file url ::> %s' % url)
@@ -532,7 +541,6 @@ def delFile(request):
         success = '{"success":false,"entity":{"reason":"not_found"}}'
         logger.debug(id + "__" + success)
         return HttpResponse(success, content_type="text/json ; charset=utf8")
-
 
 
 def infoFile(request, id):
