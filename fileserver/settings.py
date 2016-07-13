@@ -20,7 +20,7 @@ if DEBUG:
     # 当前节点所关联的下载服务，nginx＋静态资源 方式搭建,
     # 下载文件时，用 http://current_node/dir/fid 的方式
     # 所以上传文件时需要把 current_node 放入 index 中
-    current_node = '192.168.1.100'
+    current_node = '192.168.0.214'
 
     redis_host = '192.168.0.214'
     redis_port = 6379
