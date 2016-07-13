@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from PIL import Image
 from wsgiref.util import FileWrapper
 from service.models import *
-from imageutils import *
+from imageutils import resize,crop,container
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -374,6 +374,9 @@ def upload(request):
             file_name = my_file.name
             # 文件流
             sio = readFile(my_file)
+            logger.debug("=================")
+            logger.debug(sio)
+            logger.debug("=================")
         else:
             return HttpResponse('{"success":false,"entity":{"reason":"not_empty_file_or_url"}}',
                                 content_type='text/json;charset=utf8')
