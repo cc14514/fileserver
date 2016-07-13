@@ -40,3 +40,48 @@
 下载成功时直接返回文件流到请求端(content_type='text/plain;charset=utf8'),其中文件大小在 Content-Length 属性中返回；
 下载失败时返回：not_found 等字符串
 
+
+--------------------------------------------------------------
+2016-07-13 : append by liangc
+--------------------------------------------------------------
+
+下载图片时,在url末尾可以使用图片处理函数对目标图片进行加工
+
+功能: 缩放图片
+函数名: resize(l=None, w=None, h=None):
+参数:
+       l: 当传了最小边长时,将忽略 w 和 h 参数,然后按照原图的 size 找最短边参照 l 做等比缩放
+       w: 要缩放的目标宽度
+       h: 要缩放的目标高度
+
+功能: 剪切图片
+函数名: crop(l=None, x=None, y=None, w=None, h=None)
+参数:
+       l: 当传了最小边长时,将忽略 w 和 h 参数,然后按照原图的 size 找最短边参照 l 计算出宽高比例
+       x: 以左上角为 O, x 轴 ; (x,y) 为剪切的起点
+       y: 以左上角为 O, y 轴 ; (x,y) 为剪切的起点
+       w: 长
+       h: 高
+
+功能: 根据图片容器大小修正原图
+函数名: container(w=None, h=None):
+参数:
+       w: 图片容器的最大长度
+       h: 图片容器的最大高度
+
+例如:
+
+    1. 等比缩放原图的最小边长为 300
+        http://fileserver.lczybj.com/fileserver/get/文件id/resize(l=300)/
+
+    2. 从左上角开始剪切出边长为300的正方形
+        http://fileserver.lczybj.com/fileserver/get/文件id/crop(x=0,y=0,w=300,h=300)/
+
+    3. 按照宽缩放图片并剪切一个正方形
+        http://fileserver.lczybj.com/fileserver/get/文件id/resize(w=300)&crop(x=0,y=0,w=300,h=300)/
+
+       当只传递 l 参数,而不传 (x,y) 时,系统将在图片中心剪切出边长为 l 的正方形
+        http://fileserver.lczybj.com/fileserver/get/文件id/resize(w=300)&crop(l=300)/
+
+    4. 将图片缩放并剪切,以符合 400x300 尺寸容器展示
+        http://fileserver.lczybj.com/fileserver/get/文件id/container(w=400,h=300)/
