@@ -139,10 +139,19 @@ def appendIndex(args):
 
 
 def getIndex(args):
-    coll = db.fileindex
-    logger.debug('getIndex args = %s ' % args)
-    return coll.find_one(args, {'_id': 0})
-
+    # 2016-7-14 : 增加缓存处理索引
+    k = "fidx_%s" % args.get("pk")
+    v = redis_cli.get(k)
+    if v :
+        v = json.loads(v)
+        logger.debug('getIndex__on__cache args = %s , type(v)=%s' % (args,type(v)))
+        return v
+    else:
+        coll = db.fileindex
+        idx = coll.find_one(args, {'_id': 0})
+        redis_cli.setex(k,json.dumps(idx),3600*24)
+        logger.debug('getIndex args = %s , type(idx)=%s' % (args,type(idx)))
+        return idx
 
 def delIndex(args):
     coll = db.fileindex
