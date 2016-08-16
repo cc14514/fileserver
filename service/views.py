@@ -95,8 +95,11 @@ app_cfg = App_cfg()
 
 def downloadFileByUrl(url):
     try:
-        urlopen = urllib.URLopener()
-        fp = urlopen.open(url)
+        #urlopen = urllib.URLopener()
+        #fp = urlopen.open(url)
+        #data = fp.read()
+        # fix 301/301 response
+        fp = urllib.urlopen(url)
         data = fp.read()
         fp.close()
         sio = StringIO.StringIO()
